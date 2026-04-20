@@ -59,7 +59,40 @@ router.get("/", async (req, res) => {
   }
 });
 
-// 2. Lay don hang theo ID
+// 2. Tim kiem don hang theo ten khach hang (GET /api/orders/search?name=Khoa)
+router.get("/search", async (req, res) => {
+  try {
+    const { name } = req.query;
+
+    // Kiem tra xem co parameter name khong
+    if (!name) {
+      return res.status(400).json({
+        success: false,
+        data: null,
+        message: "Vui lòng cung cấp tham số 'name' để tìm kiếm",
+      });
+    }
+
+    // Su dung Regex de tim kiem khong phan biet hoa/thuong
+    const orders = await Order.find({
+      customerName: { $regex: name, $options: "i" },
+    }).sort({ totalAmount: -1 });
+
+    res.json({
+      success: true,
+      data: orders,
+      message: `Tìm thấy ${orders.length} đơn hàng với tên khách hàng chứa '${name}'`,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: err.message,
+    });
+  }
+});
+
+// 3. Lay don hang theo ID
 router.get("/:id", async (req, res) => {
   try {
     const order = await Order.findById(req.params.id);
