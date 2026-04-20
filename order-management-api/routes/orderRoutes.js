@@ -22,18 +22,26 @@ const validateTotalAmount = (items, totalAmount) => {
   return { valid: true };
 };
 
-// 1. Lay toan bo don hang hoac loc theo status (GET /api/orders?status=pending)
+// 1. Lay toan bo don hang, loc theo status, va sort theo totalAmount (GET /api/orders?status=pending&sort=asc)
 router.get("/", async (req, res) => {
   try {
-    const { status } = req.query;
+    const { status, sort } = req.query;
     let query = {};
+    let sortObj = { totalAmount: -1 }; // Mac dinh sap xep theo totalAmount giam dan
 
     // Neu co status trong query, thi loc theo status
     if (status) {
       query = { status: status };
     }
 
-    const orders = await Order.find(query).sort({ createdAt: -1 });
+    // Neu co sort trong query, thi sap xep theo totalAmount
+    if (sort) {
+      // Format: "asc" hoac "desc"
+      const sortOrder = sort === "asc" ? 1 : -1; // 1 = tang dan, -1 = giam dan
+      sortObj = { totalAmount: sortOrder };
+    }
+
+    const orders = await Order.find(query).sort(sortObj);
 
     res.json({
       success: true,
