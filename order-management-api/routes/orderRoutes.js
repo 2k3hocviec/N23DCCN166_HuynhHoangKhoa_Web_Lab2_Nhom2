@@ -22,14 +22,25 @@ const validateTotalAmount = (items, totalAmount) => {
   return { valid: true };
 };
 
-// 1. Lay toan bo don hang (GET /api/orders)
+// 1. Lay toan bo don hang hoac loc theo status (GET /api/orders?status=pending)
 router.get("/", async (req, res) => {
   try {
-    const orders = await Order.find().sort({ createdAt: -1 });
+    const { status } = req.query;
+    let query = {};
+
+    // Neu co status trong query, thi loc theo status
+    if (status) {
+      query = { status: status };
+    }
+
+    const orders = await Order.find(query).sort({ createdAt: -1 });
+
     res.json({
       success: true,
       data: orders,
-      message: "Lấy danh sách đơn hàng thành công",
+      message: status
+        ? `Lấy đơn hàng với trạng thái '${status}' thành công`
+        : "Lấy danh sách đơn hàng thành công",
     });
   } catch (err) {
     res.status(500).json({
